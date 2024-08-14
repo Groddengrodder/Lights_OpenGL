@@ -85,22 +85,19 @@ int main(void) {
     GLFWwindow *window;
     init_OpenGL(&window);
 
+    GLuint vertex_array_id;
+    glCall(glGenVertexArrays(1, &vertex_array_id));
+    glCall(glBindVertexArray(vertex_array_id));
+
     GLfloat positions[15] = {-0.5, -0.5, 0., 0., 1., 0.0, 0.5, 1., 1., 1., 0.5, -0.5, 0., 0., 1.};
 
     GLuint index[3] = {0, 1, 2};
 
-    GLuint vertex_array_id;
-    glGenVertexArrays(1, &vertex_array_id);
-    glBindVertexArray(vertex_array_id);
-
     VertexBuffer vb_first_object(15 * sizeof(GLfloat), positions, GL_STATIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat) + 3 * sizeof(GLfloat), 0);
-
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat) + 2 * sizeof(GLfloat),
-                          (void *)(2 * sizeof(GLfloat)));
+    vb_first_object.addAttribute(2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat) + 3 * sizeof(GLfloat),
+                                 0);
+    vb_first_object.addAttribute(3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat) + 2 * sizeof(GLfloat),
+                                 (void *)(2 * sizeof(GLfloat)));
 
     IndexBuffer ib_first_object(3, index, GL_STATIC_DRAW);
 
@@ -116,6 +113,8 @@ int main(void) {
     free(fragmentShader);
 
     glUseProgram(shader);
+    vb_first_object.bind();
+    ib_first_object.bind();
 
     GLint uni_id = glGetUniformLocation(shader, "u_Color");
     glUniform4f(uni_id, 1., 0., 0., 1.);

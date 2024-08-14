@@ -15,3 +15,4 @@ void IndexBuffer::bind() const { glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, gl
 void IndexBuffer::unbind() const { glCall(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)); }
 
 GLuint IndexBuffer::getCount() const { return count; }
+GLuint IndexBuffer::getId() const { return gl_id; }

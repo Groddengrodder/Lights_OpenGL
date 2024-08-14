@@ -11,6 +11,7 @@ class IndexBuffer {
     void bind() const;
     void unbind() const;
     GLuint getCount() const;
+    GLuint getId() const;
 
     private:
     GLuint gl_id;
