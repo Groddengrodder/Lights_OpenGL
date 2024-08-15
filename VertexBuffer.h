@@ -18,14 +18,14 @@ class VertexBuffer {
     void bind() const;
     void unbind() const;
     void addAttribute(const Attribute attrib);
-    void addAttribute(GLint count, GLenum type, GLboolean normalized);
-    void setLayout(Attribute *input_layout, GLuint count);
+    void addAttribute(const GLint count, const GLenum type, const GLboolean normalized);
+    void setLayout(const Attribute *input_layout, const GLuint count);
     void removeAttribute(const uint index);
 
     GLuint getCount() const;
     GLuint getId() const;
     GLuint getStride() const;
-    Attribute getAttribute(uint index) const;
+    Attribute getAttribute(const uint index) const;
 
     private:
     Attribute *layout;

@@ -89,15 +89,25 @@ int main(void) {
     glCall(glGenVertexArrays(1, &vertex_array_id));
     glCall(glBindVertexArray(vertex_array_id));
 
-    GLfloat positions[15] = {-0.5, -0.5, 0., 0., 1., 0.0, 0.5, 1., 1., 1., 0.5, -0.5, 0., 0., 1.};
+    GLfloat bg_positions[20] = {
+        -1., -1., 0., 0.5, 1., -1., +1., 0., 0.5, 1., +1., +1., 0., 0.5, 1., +1., -1., 0., 0.5, 1.,
+    };
 
-    GLuint index[3] = {0, 1, 2};
+    GLuint bg_index[6] = {0, 1, 2, 0, 2, 3};
 
-    VertexBuffer vb_first_object(15 * sizeof(GLfloat), positions, GL_STATIC_DRAW);
+    VertexBuffer vb_first_object(20 * sizeof(GLfloat), bg_positions, GL_STATIC_DRAW);
     vb_first_object.addAttribute(2, GL_FLOAT, GL_FALSE);
     vb_first_object.addAttribute(3, GL_FLOAT, GL_FALSE);
 
-    IndexBuffer ib_first_object(3, index, GL_STATIC_DRAW);
+    IndexBuffer ib_first_object(6, bg_index, GL_STATIC_DRAW);
+
+    GLfloat rechteck_positions[20] = {
+        -.5, -.5, 1., 0., 1., -.5, +.5, 1., 0., 1., +.5, +.5, 0., 0., 1., +.5, -.5, 0., 0., 1.,
+    };
+
+    VertexBuffer rechteck(20 * sizeof(GLfloat), rechteck_positions, GL_STATIC_DRAW);
+    rechteck.addAttribute(vb_first_object.getAttribute(0));
+    rechteck.addAttribute(vb_first_object.getAttribute(1));
 
     FILE *file_vertex = fopen("shader/vertex_shader.glsl", "r");
     FILE *file_fragment = fopen("shader/fragment_shader.glsl", "r");
@@ -121,7 +131,11 @@ int main(void) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glCall(glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr));
+        vb_first_object.bind();
+        glCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+
+        rechteck.bind();
+        glCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

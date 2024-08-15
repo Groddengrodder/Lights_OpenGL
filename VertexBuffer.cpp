@@ -1,6 +1,6 @@
 #include "VertexBuffer.h"
 
-size_t getSize_bytes(GLenum type) {
+size_t getSize_bytes(const GLenum type) {
     switch (type) {
     case GL_FLOAT:
         return sizeof(GLfloat);
@@ -15,7 +15,7 @@ size_t getSize_bytes(GLenum type) {
     }
 }
 
-size_t getTotalSize_bytes(Attribute *layout, GLuint count) {
+size_t getTotalSize_bytes(const Attribute *layout, const GLuint count) {
     size_t size = 0;
 
     for (uint i = 0; i < count; i++) {
@@ -54,7 +54,7 @@ void VertexBuffer::bind() const {
 
 void VertexBuffer::unbind() const { glCall(glBindBuffer(GL_ARRAY_BUFFER, 0)); }
 
-void VertexBuffer::addAttribute(Attribute attrib) {
+void VertexBuffer::addAttribute(const Attribute attrib) {
     layout_count += 1;
 
     if (layout == NULL) {
@@ -69,7 +69,7 @@ void VertexBuffer::addAttribute(Attribute attrib) {
     layout[layout_count - 1].pointer = (void *)getTotalSize_bytes(layout, layout_count - 1);
 }
 
-void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized) {
+void VertexBuffer::addAttribute(const GLint count, const GLenum type, const GLboolean normalized) {
     layout_count += 1;
 
     if (layout == NULL) {
@@ -86,7 +86,7 @@ void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized) 
     layout[layout_count - 1].pointer = (void *)getTotalSize_bytes(layout, layout_count - 1);
 }
 
-void VertexBuffer::setLayout(Attribute *input_layout, GLuint count) {
+void VertexBuffer::setLayout(const Attribute *input_layout, const GLuint count) {
     if (layout != NULL) {
         layout = (Attribute *)realloc(layout, count * sizeof(Attribute));
     } else {
@@ -131,7 +131,7 @@ void VertexBuffer::removeAttribute(const uint index) {
 GLuint VertexBuffer::getCount() const { return layout_count; }
 GLuint VertexBuffer::getId() const { return gl_id; }
 GLuint VertexBuffer::getStride() const { return stride; }
-Attribute VertexBuffer::getAttribute(uint index) const {
+Attribute VertexBuffer::getAttribute(const uint index) const {
     if (index < 0 || index >= layout_count) {
         printf("Error: Invalid Index\n");
         exit(1);
