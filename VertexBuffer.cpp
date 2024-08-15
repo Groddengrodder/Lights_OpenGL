@@ -1,8 +1,34 @@
 #include "VertexBuffer.h"
 
+size_t getSize_bytes(GLenum type) {
+    switch (type) {
+    case GL_FLOAT:
+        return sizeof(GLfloat);
+    case GL_INT:
+        return sizeof(GLint);
+    case GL_UNSIGNED_INT:
+        return sizeof(GLuint);
+    case GL_BOOL:
+        return sizeof(GLboolean);
+    default:
+        return 0;
+    }
+}
+
+size_t getTotalSize_bytes(Attribute *layout, GLuint count) {
+    size_t size = 0;
+
+    for (uint i = 0; i < count; i++) {
+        size += layout[i].count * getSize_bytes(layout[i].type);
+    }
+
+    return size;
+}
+
 VertexBuffer::VertexBuffer(const GLuint size_bytes, const void *data, const GLint GL_OPTION) {
     layout = NULL;
     layout_count = 0;
+    stride = 0;
 
     glCall(glGenBuffers(1, &gl_id));
     glCall(glBindBuffer(GL_ARRAY_BUFFER, gl_id));
@@ -22,7 +48,7 @@ void VertexBuffer::bind() const {
     for (uint i = 0; i < layout_count; i++) {
         glCall(glEnableVertexAttribArray(i));
         glCall(glVertexAttribPointer(i, layout[i].count, layout[i].type, layout[i].normalized,
-                                     layout[i].stride, layout[i].pointer));
+                                     stride, layout[i].pointer));
     }
 }
 
@@ -38,10 +64,11 @@ void VertexBuffer::addAttribute(Attribute attrib) {
     }
 
     layout[layout_count - 1] = attrib;
+
+    stride = getTotalSize_bytes(layout, layout_count);
 }
 
-void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized, GLsizei stride,
-                                GLvoid *pointer) {
+void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized, GLvoid *pointer) {
     layout_count += 1;
 
     if (layout == NULL) {
@@ -53,8 +80,24 @@ void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized, 
     layout[layout_count - 1].count = count;
     layout[layout_count - 1].type = type;
     layout[layout_count - 1].normalized = normalized;
-    layout[layout_count - 1].stride = stride;
     layout[layout_count - 1].pointer = pointer;
+
+    stride = getTotalSize_bytes(layout, layout_count);
+}
+
+void VertexBuffer::setLayout(Attribute *input_layout, GLuint count) {
+    if (layout != NULL) {
+        layout = (Attribute *)realloc(layout, count * sizeof(Attribute));
+    } else {
+        layout = (Attribute *)malloc(count * sizeof(Attribute));
+    }
+
+    layout_count = count;
+    stride = getTotalSize_bytes(input_layout, count);
+
+    for (uint i = 0; i < layout_count; i++) {
+        layout[i] = input_layout[i];
+    }
 }
 
 void VertexBuffer::removeAttribute(const uint index) {
@@ -78,7 +121,10 @@ void VertexBuffer::removeAttribute(const uint index) {
     layout_count -= 1;
 
     layout = (Attribute *)realloc(layout, layout_count * sizeof(Attribute));
+
+    stride = getTotalSize_bytes(layout, layout_count);
 }
 
 GLuint VertexBuffer::getCount() const { return layout_count; }
 GLuint VertexBuffer::getId() const { return gl_id; }
+GLuint VertexBuffer::getStride() const { return stride; }
