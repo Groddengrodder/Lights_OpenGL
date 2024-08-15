@@ -66,9 +66,10 @@ void VertexBuffer::addAttribute(Attribute attrib) {
     layout[layout_count - 1] = attrib;
 
     stride = getTotalSize_bytes(layout, layout_count);
+    layout[layout_count - 1].pointer = (void *)getTotalSize_bytes(layout, layout_count - 1);
 }
 
-void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized, GLvoid *pointer) {
+void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized) {
     layout_count += 1;
 
     if (layout == NULL) {
@@ -80,9 +81,9 @@ void VertexBuffer::addAttribute(GLint count, GLenum type, GLboolean normalized, 
     layout[layout_count - 1].count = count;
     layout[layout_count - 1].type = type;
     layout[layout_count - 1].normalized = normalized;
-    layout[layout_count - 1].pointer = pointer;
 
     stride = getTotalSize_bytes(layout, layout_count);
+    layout[layout_count - 1].pointer = (void *)getTotalSize_bytes(layout, layout_count - 1);
 }
 
 void VertexBuffer::setLayout(Attribute *input_layout, GLuint count) {
@@ -97,6 +98,7 @@ void VertexBuffer::setLayout(Attribute *input_layout, GLuint count) {
 
     for (uint i = 0; i < layout_count; i++) {
         layout[i] = input_layout[i];
+        layout[i].pointer = (void *)getTotalSize_bytes(input_layout, i);
     }
 }
 
@@ -116,6 +118,7 @@ void VertexBuffer::removeAttribute(const uint index) {
 
     for (uint i = index; i < layout_count - 1; i++) {
         layout[i] = layout[i + 1];
+        layout[i].pointer = (void *)getTotalSize_bytes(layout, i);
     }
 
     layout_count -= 1;
@@ -128,3 +131,11 @@ void VertexBuffer::removeAttribute(const uint index) {
 GLuint VertexBuffer::getCount() const { return layout_count; }
 GLuint VertexBuffer::getId() const { return gl_id; }
 GLuint VertexBuffer::getStride() const { return stride; }
+Attribute VertexBuffer::getAttribute(uint index) const {
+    if (index < 0 || index >= layout_count) {
+        printf("Error: Invalid Index\n");
+        exit(1);
+    }
+
+    return layout[index];
+}

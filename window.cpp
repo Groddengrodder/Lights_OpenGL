@@ -94,8 +94,8 @@ int main(void) {
     GLuint index[3] = {0, 1, 2};
 
     VertexBuffer vb_first_object(15 * sizeof(GLfloat), positions, GL_STATIC_DRAW);
-    vb_first_object.addAttribute(2, GL_FLOAT, GL_FALSE, 0);
-    vb_first_object.addAttribute(3, GL_FLOAT, GL_FALSE, (void *)(2 * sizeof(GLfloat)));
+    vb_first_object.addAttribute(2, GL_FLOAT, GL_FALSE);
+    vb_first_object.addAttribute(3, GL_FLOAT, GL_FALSE);
 
     IndexBuffer ib_first_object(3, index, GL_STATIC_DRAW);
 
