@@ -131,6 +131,7 @@ void VertexBuffer::removeAttribute(const uint index) {
 GLuint VertexBuffer::getCount() const { return layout_count; }
 GLuint VertexBuffer::getId() const { return gl_id; }
 GLuint VertexBuffer::getStride() const { return stride; }
+void VertexBuffer::setStride(GLuint newStride) { stride = newStride; }
 Attribute VertexBuffer::getAttribute(const uint index) const {
     if (index < 0 || index >= layout_count) {
         printf("Error: Invalid Index\n");

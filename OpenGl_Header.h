@@ -8,14 +8,14 @@
 #include <cstdlib>
 
 #define glCall(x)                                                                                  \
-    ClearError();                                                                                  \
+    clearError();                                                                                  \
     (x);                                                                                           \
     if (checkError()) {                                                                            \
         printf("%s, %s, %d\n", #x, __FILE__, __LINE__);                                            \
         exit(1);                                                                                   \
     }
 
-static void ClearError() {
+static void clearError() {
     while (glGetError() != GL_NO_ERROR) {
     }
 }

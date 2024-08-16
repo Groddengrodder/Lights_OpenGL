@@ -8,11 +8,14 @@ VertexBuffer.o: VertexBuffer.cpp
 IndexBuffer.o: IndexBuffer.cpp
 	$(CC) $(CFLAGS) -c -o IndexBuffer.o IndexBuffer.cpp
 
+Shader.o: Shader.cpp
+	$(CC) $(CFLAGS) -c -o Shader.o Shader.cpp
+
 window.o:
 	$(CC) $(CFLAGS) -c -o window.o window.cpp
 
-window: window.o VertexBuffer.o IndexBuffer.o
-	$(CC) $(CFLAGS) -o window window.o VertexBuffer.o IndexBuffer.o $(LIBS)
+window: window.o VertexBuffer.o IndexBuffer.o Shader.o
+	$(CC) $(CFLAGS) -o window window.o VertexBuffer.o IndexBuffer.o Shader.o $(LIBS)
 
 rm_window:
-	rm -f window.o window IndexBuffer.o VertexBuffer.o
+	rm -f window *.o

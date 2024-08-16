@@ -1,60 +1,11 @@
 #include "IndexBuffer.h"
 #include "OpenGl_Header.h"
+#include "Shader.h"
 #include "VertexBuffer.h"
 
 const GLuint window_width = 640;
 const GLuint window_height = 480;
 const GLchar *window_name = "A new Window";
-
-char *getShader(FILE *file) {
-    uint MaxFileSize = 1000;
-    char *code = (char *)malloc(MaxFileSize * sizeof(char));
-
-    for (uint i = 0; (code[i] = fgetc(file)) != EOF; i++) {
-        if (i >= MaxFileSize) {
-            MaxFileSize *= 2;
-            code = (char *)realloc(code, MaxFileSize);
-        }
-    }
-
-    return code;
-}
-
-static GLuint CompileShader(const char *source, GLuint type) {
-    GLuint id = glCreateShader(type);
-    glShaderSource(id, 1, &source, nullptr);
-    glCompileShader(id);
-
-    GLint result;
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE) {
-        int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char message[length];
-        glGetShaderInfoLog(id, length, &length, message);
-        printf("%s\n", message);
-        glDeleteShader(id);
-        exit(1);
-    }
-
-    return id;
-}
-
-static GLuint CreateShader(const char *vertexShader, const char *fragmentShader) {
-    GLuint program = glCreateProgram();
-    GLuint vs = CompileShader(vertexShader, GL_VERTEX_SHADER);
-    GLuint fs = CompileShader(fragmentShader, GL_FRAGMENT_SHADER);
-
-    glAttachShader(program, vs);
-    glAttachShader(program, fs);
-    glLinkProgram(program);
-    glValidateProgram(program);
-
-    glDeleteShader(vs);
-    glDeleteShader(fs);
-
-    return program;
-}
 
 void init_OpenGL(GLFWwindow **window) {
     if (!glfwInit()) {
@@ -109,22 +60,15 @@ int main(void) {
     rechteck.addAttribute(vb_first_object.getAttribute(0));
     rechteck.addAttribute(vb_first_object.getAttribute(1));
 
-    FILE *file_vertex = fopen("shader/vertex_shader.glsl", "r");
-    FILE *file_fragment = fopen("shader/fragment_shader.glsl", "r");
-    char *vertexShader = getShader(file_vertex);
-    char *fragmentShader = getShader(file_fragment);
-    fclose(file_vertex);
-    fclose(file_fragment);
+    char VertexSource[] = "shader/vertex_shader.glsl";
+    char FragmentSource[] = "shader/fragment_shader.glsl";
+    Shader shader(VertexSource, FragmentSource);
 
-    GLuint shader = CreateShader(vertexShader, fragmentShader);
-    free(vertexShader);
-    free(fragmentShader);
-
-    glUseProgram(shader);
+    shader.bind();
     vb_first_object.bind();
     ib_first_object.bind();
 
-    GLint uni_id = glGetUniformLocation(shader, "u_Color");
+    GLint uni_id = glGetUniformLocation(shader.getId(), "u_Color");
     glUniform4f(uni_id, 1., 0., 0., 1.);
 
     while (!glfwWindowShouldClose(window)) {

@@ -25,6 +25,7 @@ class VertexBuffer {
     GLuint getCount() const;
     GLuint getId() const;
     GLuint getStride() const;
+    void setStride(GLuint newStride);
     Attribute getAttribute(const uint index) const;
 
     private:
