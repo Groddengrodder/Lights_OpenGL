@@ -14,9 +14,9 @@ static char *getShader(FILE *file) {
     return code;
 }
 
-static GLuint CompileShader(const char *source, GLuint type) {
+static GLuint CompileShader(const char *source, const GLuint type) {
     clearError();
-    GLuint id = glCreateShader(type);
+    const GLuint id = glCreateShader(type);
     if (checkError()) {
         printf("Error while creating shader from type\n");
         exit(1);
@@ -42,14 +42,14 @@ static GLuint CompileShader(const char *source, GLuint type) {
 
 static GLuint CreateShader(const char *vertexShader, const char *fragmentShader) {
     clearError();
-    GLuint program = glCreateProgram();
+    const GLuint program = glCreateProgram();
     if (checkError()) {
         printf("Error while creating Program\n");
         exit(1);
     }
 
-    GLuint vs = CompileShader(vertexShader, GL_VERTEX_SHADER);
-    GLuint fs = CompileShader(fragmentShader, GL_FRAGMENT_SHADER);
+    const GLuint vs = CompileShader(vertexShader, GL_VERTEX_SHADER);
+    const GLuint fs = CompileShader(fragmentShader, GL_FRAGMENT_SHADER);
 
     glCall(glAttachShader(program, vs));
     glCall(glAttachShader(program, fs));
@@ -62,7 +62,7 @@ static GLuint CreateShader(const char *vertexShader, const char *fragmentShader)
     return program;
 }
 
-Shader::Shader(char VertexPath[], char FragmentPath[]) {
+Shader::Shader(const char VertexPath[], const char FragmentPath[]) {
     FILE *VertexFile = fopen(VertexPath, "r");
     FILE *FragmentFile = fopen(FragmentPath, "r");
 
@@ -83,5 +83,19 @@ Shader::~Shader() { glCall(glDeleteProgram(gl_id)); }
 void Shader::bind() const { glCall(glUseProgram(gl_id)); }
 
 void Shader::unbind() const { glCall(glUseProgram(0)); }
+
+void Shader::setUniform(const char *UniformName, const GLfloat f1, const GLfloat f2,
+                        const GLfloat f3, const GLfloat f4) const {
+    clearError();
+    const GLint location = glGetUniformLocation(gl_id, UniformName);
+    if (checkError()) {
+        printf("Error while getting Uniform Location\n");
+        exit(1);
+    }
+
+    if (location != -1) {
+        glCall(glUniform4f(location, f1, f2, f3, f4));
+    }
+}
 
 GLuint Shader::getId() const { return gl_id; }

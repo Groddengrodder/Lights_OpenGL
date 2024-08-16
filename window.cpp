@@ -68,8 +68,8 @@ int main(void) {
     vb_first_object.bind();
     ib_first_object.bind();
 
-    GLint uni_id = glGetUniformLocation(shader.getId(), "u_Color");
-    glUniform4f(uni_id, 1., 0., 0., 1.);
+    char UniformName[] = "u_Color";
+    shader.setUniform(UniformName, 1., 0., 0., 1.);
 
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
