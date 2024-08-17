@@ -1,44 +1,20 @@
 #include "IndexBuffer.h"
 #include "OpenGl_Header.h"
+#include "Renderer.h"
 #include "Shader.h"
+#include "VertexArray.h"
 #include "VertexBuffer.h"
 
 const GLuint window_width = 640;
 const GLuint window_height = 480;
 const GLchar *window_name = "A new Window";
 
-void init_OpenGL(GLFWwindow **window) {
-    if (!glfwInit()) {
-        exit(1);
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    *window = glfwCreateWindow(window_width, window_height, window_name, NULL, NULL);
-
-    if (*window == NULL) {
-        glfwTerminate();
-        exit(1);
-    }
-
-    glfwMakeContextCurrent(*window);
-    glfwSwapInterval(1);
-
-    if (glewInit() != GLEW_OK) {
-        printf("hmm\n");
-        exit(1);
-    }
-}
-
 int main(void) {
     GLFWwindow *window;
-    init_OpenGL(&window);
+    init_OpenGL(&window, window_width, window_height, window_name);
 
-    GLuint vertex_array_id;
-    glCall(glGenVertexArrays(1, &vertex_array_id));
-    glCall(glBindVertexArray(vertex_array_id));
+    VertexArray GlobalVertexArray;
+    GlobalVertexArray.bind();
 
     GLfloat bg_positions[20] = {
         -1., -1., 0., 0.5, 1., -1., +1., 0., 0.5, 1., +1., +1., 0., 0.5, 1., +1., -1., 0., 0.5, 1.,
@@ -75,11 +51,8 @@ int main(void) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        vb_first_object.bind();
-        glCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
-
-        rechteck.bind();
-        glCall(glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr));
+        draw(vb_first_object, ib_first_object, shader);
+        draw(rechteck, ib_first_object, shader);
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

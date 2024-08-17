@@ -29,4 +29,30 @@ static bool checkError() {
     }
     return found;
 }
+
+static void init_OpenGL(GLFWwindow **window, const GLuint width, const GLuint height,
+                        const GLchar *name) {
+    if (!glfwInit()) {
+        exit(1);
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    *window = glfwCreateWindow(width, height, name, NULL, NULL);
+
+    if (*window == NULL) {
+        glfwTerminate();
+        exit(1);
+    }
+
+    glfwMakeContextCurrent(*window);
+    glfwSwapInterval(1);
+
+    if (glewInit() != GLEW_OK) {
+        printf("hmm\n");
+        exit(1);
+    }
+}
 #endif
