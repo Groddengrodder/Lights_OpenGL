@@ -16,15 +16,7 @@ int main(void) {
     VertexArray GlobalVertexArray;
     GlobalVertexArray.bind();
 
-    GLfloat bg_positions[20] = {
-        -1., -1., 0., 0.5, 1., -1., +1., 0., 0.5, 1., +1., +1., 0., 0.5, 1., +1., -1., 0., 0.5, 1.,
-    };
-
     GLuint bg_index[6] = {0, 1, 2, 0, 2, 3};
-
-    VertexBuffer vb_first_object(20 * sizeof(GLfloat), bg_positions, GL_STATIC_DRAW);
-    vb_first_object.addAttribute(2, GL_FLOAT, GL_FALSE);
-    vb_first_object.addAttribute(3, GL_FLOAT, GL_FALSE);
 
     IndexBuffer ib_first_object(6, bg_index, GL_STATIC_DRAW);
 
@@ -32,16 +24,24 @@ int main(void) {
         -.5, -.5, 1., 0., 1., -.5, +.5, 1., 0., 1., +.5, +.5, 0., 0., 1., +.5, -.5, 0., 0., 1.,
     };
 
+    GLfloat bg_position[2];
+    bg_position[0] = -1;
+    bg_position[1] = -1;
+
+    GLfloat bg_color[3];
+    bg_color[0] = 0;
+    bg_color[1] = 0.5;
+    bg_color[2] = 1;
+
     VertexBuffer rechteck(20 * sizeof(GLfloat), rechteck_positions, GL_STATIC_DRAW);
-    rechteck.addAttribute(vb_first_object.getAttribute(0));
-    rechteck.addAttribute(vb_first_object.getAttribute(1));
+    rechteck.addAttribute(2, GL_FLOAT, GL_FALSE);
+    rechteck.addAttribute(3, GL_FLOAT, GL_FALSE);
 
     char VertexSource[] = "shader/vertex_shader.glsl";
     char FragmentSource[] = "shader/fragment_shader.glsl";
     Shader shader(VertexSource, FragmentSource);
 
     shader.bind();
-    vb_first_object.bind();
     ib_first_object.bind();
 
     char UniformName[] = "u_Color";
@@ -51,7 +51,7 @@ int main(void) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        draw(vb_first_object, ib_first_object, shader);
+        drawRect(bg_position, bg_color, window_width, window_height);
         draw(rechteck, ib_first_object, shader);
 
         /* Swap front and back buffers */
