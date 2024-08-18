@@ -1,15 +1,180 @@
 #include "IndexBuffer.h"
+#include "Lights_Out.h"
 #include "OpenGl_Header.h"
 #include "Renderer.h"
 #include "Shader.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
+#include <unistd.h>
 
-const GLuint window_width = 640;
-const GLuint window_height = 480;
+const GLuint window_width = 640;  // 640
+const GLuint window_height = 640; // 480
 const GLchar *window_name = "A new Window";
 
-int main(void) {
+const uint puzzle_width = 6;
+const uint puzzle_height = 6;
+const uint cell_count = puzzle_width * puzzle_height;
+
+const GLfloat bg_color[3] = {0.0, 0.5, 1.0};
+const GLfloat bg_position[2] = {-1., -1.};
+const GLfloat bg_width = 2;
+const GLfloat bg_height = 2;
+
+typedef struct {
+    float width;
+    float height;
+    bool filled;
+    float position[2];
+} box;
+
+void box_init(box *input, float width, float height, float pos_x, float pos_y, bool filled) {
+    input->width = width;
+    input->height = height;
+    input->position[0] = pos_x;
+    input->position[1] = pos_y;
+    input->filled = filled;
+}
+
+void cell_statechange(box **cell, int input_x, int input_y) {
+    if (input_x >= 0 && input_x < puzzle_width && input_y >= 0 && input_y < puzzle_height) {
+        cell[input_y][input_x].filled = !cell[input_y][input_x].filled;
+    }
+}
+
+void click_cell(box **cell, int input_x, int input_y) {
+    if (input_x >= 0 && input_x < puzzle_width && input_y >= 0 && input_y < puzzle_height) {
+        cell_statechange(cell, input_x, input_y);
+        cell_statechange(cell, input_x + 1, input_y);
+        cell_statechange(cell, input_x, input_y + 1);
+        cell_statechange(cell, input_x - 1, input_y);
+        cell_statechange(cell, input_x, input_y - 1);
+    }
+}
+
+box **init_cells(float cell_width, float cell_height) {
+    box *cell_1d = (box *)malloc(puzzle_height * puzzle_width * sizeof(box));
+    box **cell = (box **)malloc(puzzle_height * sizeof(box *));
+
+    for (uint i = 0; i < puzzle_height; i++) {
+        cell[i] = cell_1d + i * puzzle_width;
+    }
+
+    for (uint i = 0; i < puzzle_height; i++) {
+        for (uint j = 0; j < puzzle_width; j++) {
+            box_init(&cell[i][j], cell_width, cell_height,
+                     j * (2 * cell_width) + 0.5 * cell_width - 1,
+                     (puzzle_height - 1 - i) * (2 * cell_height) + 0.5 * cell_height - 1, false);
+        }
+    }
+
+    return cell;
+}
+
+void drawCell(box cell, GLfloat *color, Shader shader) {
+    GLfloat cell_color[3];
+
+    if (color == NULL) {
+        if (cell.filled) {
+            cell_color[0] = 1.;
+            cell_color[1] = 1.;
+            cell_color[2] = 0.;
+        } else {
+            cell_color[0] = 1.;
+            cell_color[1] = 1.;
+            cell_color[2] = 1.;
+        }
+    } else {
+        cell_color[0] = color[0];
+        cell_color[1] = color[1];
+        cell_color[2] = color[2];
+    }
+
+    shader.setUniform("rect_info", cell.position[0], cell.position[1], cell.width, cell.height);
+    drawRect(cell.position, cell_color, cell.width, cell.height);
+}
+
+void cell_randomize(box **cell) {
+    for (int i = 0; i < puzzle_height; i++) {
+        for (int j = 0; j < puzzle_width; j++) {
+            if (rand() % 2) {
+                click_cell(cell, j, i);
+            }
+        }
+    }
+}
+
+bool *calculate_solution(box **cell) {
+    bool *puzzle = (bool *)malloc(puzzle_width * puzzle_height * sizeof(bool));
+
+    for (uint i = 0; i < puzzle_height; i++) {
+        for (uint j = 0; j < puzzle_width; j++) {
+            puzzle[i * puzzle_width + j] = cell[i][j].filled;
+        }
+    }
+
+    bool *solution = solve_puzzle(puzzle, puzzle_width, puzzle_height);
+    free(puzzle);
+
+    return solution;
+}
+
+void drawSelection();
+
+void solve_sequence(box **cell, bool *input_solution, GLFWwindow *window, Shader shader) {
+    const uint inverse_framerate = 10000000 / (puzzle_width * puzzle_height) > 50000
+                                       ? 10000000 / (puzzle_width * puzzle_height)
+                                       : 50000; // stable values: 50000
+
+    bool *solution = NULL;
+    if (input_solution == NULL) {
+        solution = calculate_solution(cell);
+    } else {
+        solution = input_solution;
+    }
+
+    if (solution == NULL) {
+        return;
+    }
+
+    GLfloat selection_color[3] = {1., 0., 1.};
+    shader.setUniform("bg_color", bg_color[0], bg_color[1], bg_color[2], 1.);
+
+    for (uint i = 0; i < puzzle_height && !glfwWindowShouldClose(window); i++) {
+        for (uint j = 0; j < puzzle_width && !glfwWindowShouldClose(window); j++) {
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            if (solution[puzzle_width * i + j]) {
+                click_cell(cell, j, i);
+            }
+
+            shader.setUniform("rect_info", bg_position[0], bg_position[1], bg_width, bg_height);
+            drawRect(bg_position, bg_color, bg_width, bg_height);
+            for (uint i = 0; i < cell_count; i++) {
+                drawCell(cell[0][i], NULL, shader);
+            }
+            drawCell(cell[i][j], selection_color, shader);
+
+            box special = cell[i][j];
+            special.width -= 0.3 * cell[i][j].width;
+            special.height -= 0.3 * cell[i][j].height;
+            special.position[0] += 0.15 * cell[i][j].width;
+            special.position[1] += 0.15 * cell[i][j].height;
+
+            shader.setUniform("bg_color", selection_color[0], selection_color[1],
+                              selection_color[2], 1.);
+            drawCell(special, NULL, shader);
+            shader.setUniform("bg_color", bg_color[0], bg_color[1], bg_color[2], 1.);
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
+            usleep(inverse_framerate);
+        }
+    }
+
+    free(solution);
+}
+
+int main(int argc, char *argv[]) {
     GLFWwindow *window;
     init_OpenGL(&window, window_width, window_height, window_name);
 
@@ -20,22 +185,23 @@ int main(void) {
 
     IndexBuffer ib_first_object(6, bg_index, GL_STATIC_DRAW);
 
-    GLfloat rechteck_positions[20] = {
-        -.5, -.5, 1., 0., 1., -.5, +.5, 1., 0., 1., +.5, +.5, 0., 0., 1., +.5, -.5, 0., 0., 1.,
-    };
+    const float cell_width = 1. / puzzle_width;
+    const float cell_height = 1. / puzzle_height;
+    box **cell = init_cells(cell_width, cell_height);
 
-    GLfloat bg_position[2];
-    bg_position[0] = -1;
-    bg_position[1] = -1;
-
-    GLfloat bg_color[3];
-    bg_color[0] = 0;
-    bg_color[1] = 0.5;
-    bg_color[2] = 1;
-
-    VertexBuffer rechteck(20 * sizeof(GLfloat), rechteck_positions, GL_STATIC_DRAW);
-    rechteck.addAttribute(2, GL_FLOAT, GL_FALSE);
-    rechteck.addAttribute(3, GL_FLOAT, GL_FALSE);
+    if (argc == 2) {
+        for (uint i = 0; i < puzzle_height; i++) {
+            uint j = 0;
+            for (j = 0; j < puzzle_width && puzzle_width * i + j < strlen(argv[1]); j++) {
+                cell[i][j].filled = (bool)(argv[1][i * puzzle_width + j] - '0');
+            }
+            if (puzzle_width * i + j >= strlen(argv[1])) {
+                break;
+            }
+        }
+    } else {
+        cell_randomize(cell);
+    }
 
     char VertexSource[] = "shader/vertex_shader.glsl";
     char FragmentSource[] = "shader/fragment_shader.glsl";
@@ -44,15 +210,22 @@ int main(void) {
     shader.bind();
     ib_first_object.bind();
 
-    char UniformName[] = "u_Color";
-    shader.setUniform(UniformName, 1., 0., 0., 1.);
+    char bg_color_uni[] = "bg_color";
+    char rect_info[] = "rect_info";
+    shader.setUniform(bg_color_uni, bg_color[0], bg_color[1], bg_color[2], 1.);
+
+    solve_sequence(cell, NULL, window, shader);
 
     while (!glfwWindowShouldClose(window)) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
 
-        drawRect(bg_position, bg_color, window_width, window_height);
-        draw(rechteck, ib_first_object, shader);
+        shader.setUniform(rect_info, bg_position[0], bg_position[1], bg_width, bg_height);
+        drawRect(bg_position, bg_color, bg_width, bg_height);
+
+        for (uint i = 0; i < cell_count; i++) {
+            drawCell(cell[0][i], NULL, shader);
+        }
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);

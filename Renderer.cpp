@@ -8,8 +8,8 @@ void draw(const VertexBuffer &vertexbuffer, const IndexBuffer &indexbuffer, cons
     glCall(glDrawElements(GL_TRIANGLES, indexbuffer.getCount(), GL_UNSIGNED_INT, nullptr));
 }
 
-void drawRect(const GLfloat position[], const GLfloat color[], const GLuint width,
-              const GLuint height) {
+void drawRect(const GLfloat position[], const GLfloat color[], const GLfloat width,
+              const GLfloat height) {
     GLfloat data[20];
     data[0] = position[0];
     data[1] = position[1];
@@ -43,7 +43,7 @@ void drawRect(const GLfloat position[], const GLfloat color[], const GLuint widt
     glCall(glDrawElements(GL_TRIANGLES, rect_ib.getCount(), GL_UNSIGNED_INT, nullptr));
 }
 
-void drawRect(const GLfloat position[], const GLuint width, const GLuint height) {
+void drawRect(const GLfloat position[], const GLfloat width, const GLfloat height) {
     GLfloat data[8];
     data[0] = position[0];
     data[1] = position[1];
@@ -70,7 +70,7 @@ void drawRect(const GLfloat position[], const GLuint width, const GLuint height)
     glCall(glDrawElements(GL_TRIANGLES, rect_ib.getCount(), GL_UNSIGNED_INT, nullptr));
 }
 
-void drawRect(const GLfloat x, const GLfloat y, GLuint width, GLuint height) {
+void drawRect(const GLfloat x, const GLfloat y, GLfloat width, GLfloat height) {
     GLfloat data[8];
     data[0] = x;
     data[1] = y;
