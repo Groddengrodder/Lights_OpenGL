@@ -14,7 +14,7 @@ bool *Transformation = NULL; // Transformations-Matrix von Inputs zu Änderung d
 #define add(a, b) ((a) ^ (b))
 #define multi(a, b) ((a) && (b))
 
-// Initialisierung der arrays
+// Initialisierung eines arrays
 void *init(int N, long int size) {
     void *arr = malloc(N * size);
     memset(arr, 0, N * size);
