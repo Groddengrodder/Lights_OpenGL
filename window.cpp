@@ -24,9 +24,9 @@ const char VertexSource[] = "shader/vertex_shader.glsl";
 const char FragmentSource[] = "shader/fragment_shader.glsl";
 Shader *shader = NULL;
 
-const uint puzzle_width = 6;
-const uint puzzle_height = 6;
-const uint cell_count = puzzle_width * puzzle_height;
+uint puzzle_width = 6;
+uint puzzle_height = 6;
+uint cell_count = puzzle_width * puzzle_height;
 box **cell = NULL;
 
 GLfloat color_on[3] = {1., 1., 0.};
@@ -283,6 +283,14 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 }
 
 int main(int argc, char *argv[]) {
+    printf("width = ");
+    scanf("%u", &puzzle_width);
+
+    printf("height = ");
+    scanf("%u", &puzzle_height);
+
+    cell_count = puzzle_width * puzzle_height;
+
     init_OpenGL(&window, window_width, window_height, window_name);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
