@@ -136,6 +136,8 @@ bool *calculate_solution() {
 void drawSelection();
 
 void solve_sequence() {
+    show = false;
+
     const uint inverse_framerate = 10000000 / (puzzle_width * puzzle_height) > 50000
                                        ? 10000000 / (puzzle_width * puzzle_height)
                                        : 50000; // stable values: 50000
@@ -193,6 +195,16 @@ void solve_sequence() {
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_R && action == GLFW_PRESS && input_enabled) {
         cell_randomize();
+
+        if (show) {
+            if (input_solution == NULL) {
+                input_solution = calculate_solution();
+            } else {
+                bool *temp = input_solution;
+                input_solution = calculate_solution();
+                free(temp);
+            }
+        }
     }
 
     if (key == GLFW_KEY_S && action == GLFW_PRESS && input_enabled) {
@@ -200,7 +212,23 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     }
 
     if (key == GLFW_KEY_O && action == GLFW_PRESS && input_enabled) {
-        show = !show;
+        if (show) {
+            show = false;
+            if (input_solution != NULL) {
+                bool *temp = input_solution;
+                input_solution = NULL;
+                free(temp);
+            }
+        } else {
+            show = true;
+            if (input_solution == NULL) {
+                input_solution = calculate_solution();
+            } else {
+                bool *temp = input_solution;
+                input_solution = calculate_solution();
+                free(temp);
+            }
+        }
     }
 
     if ((key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q) && action == GLFW_PRESS) {
@@ -255,6 +283,28 @@ int main(int argc, char *argv[]) {
 
         for (uint i = 0; i < cell_count; i++) {
             drawCell(cell[0][i], NULL);
+        }
+
+        if (show && input_solution != NULL) {
+            for (uint i = 0; i < cell_count; i++) {
+                if (input_solution[i] == 1) {
+                    if (cell[0][i].filled) {
+                        shader->setUniform(bg_color_uni, color_on[0], color_on[1], color_on[2], 1.);
+                    } else {
+                        shader->setUniform(bg_color_uni, color_off[0], color_off[1], color_off[2],
+                                           1.);
+                    }
+
+                    box special = cell[0][i];
+                    special.width -= 0.6 * cell[0][i].width;
+                    special.height -= 0.6 * cell[0][i].height;
+                    special.position[0] += 0.3 * cell[0][i].width;
+                    special.position[1] += 0.3 * cell[0][i].height;
+
+                    drawCell(special, selection_color);
+                    shader->setUniform(bg_color_uni, bg_color[0], bg_color[1], bg_color[2], 1.);
+                }
+            }
         }
 
         /* Swap front and back buffers */
