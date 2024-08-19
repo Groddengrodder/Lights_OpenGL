@@ -31,7 +31,9 @@ box **cell = NULL;
 
 GLfloat color_on[3] = {1., 1., 0.};
 GLfloat color_off[3] = {1., 1., 1.};
+
 GLfloat selection_color[3] = {1., 0., 1.};
+uint select_i = -1;
 
 bool show = false;
 
@@ -192,6 +194,50 @@ void solve_sequence() {
     free(solution);
 }
 
+void mouse_button_callback(GLFWwindow *window, int button, int action, int mods) {
+    if (select_i == -1 || !input_enabled) {
+        return;
+    }
+
+    uint i = select_i / puzzle_width;
+    uint j = select_i % puzzle_width;
+
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
+        click_cell(j, i);
+
+        if (show) {
+            if (input_solution == NULL) {
+                input_solution = calculate_solution();
+            } else {
+                bool *temp = input_solution;
+                input_solution = calculate_solution();
+                free(temp);
+            }
+        }
+    }
+}
+
+void mouse_callback(GLFWwindow *window, double xpos, double ypos) {
+    xpos = 2 * xpos / window_width - 1;
+    ypos = 2 * (window_height - ypos) / window_height - 1;
+
+    bool found = false;
+
+    for (uint i = 0; i < cell_count; i++) {
+        if (xpos >= cell[0][i].position[0] && xpos < cell[0][i].position[0] + cell[0][i].width) {
+            if (ypos >= cell[0][i].position[1] &&
+                ypos < cell[0][i].position[1] + cell[0][i].height) {
+                select_i = i;
+                found = true;
+            }
+        }
+    }
+
+    if (!found) {
+        select_i = -1;
+    }
+}
+
 void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     if (key == GLFW_KEY_R && action == GLFW_PRESS && input_enabled) {
         cell_randomize();
@@ -238,6 +284,8 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
 
 int main(int argc, char *argv[]) {
     init_OpenGL(&window, window_width, window_height, window_name);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
 
     VertexArray GlobalVertexArray;
@@ -283,6 +331,21 @@ int main(int argc, char *argv[]) {
 
         for (uint i = 0; i < cell_count; i++) {
             drawCell(cell[0][i], NULL);
+        }
+
+        if (select_i != -1) {
+            drawCell(cell[0][select_i], selection_color);
+
+            box special = cell[0][select_i];
+            special.width -= 0.3 * cell[0][select_i].width;
+            special.height -= 0.3 * cell[0][select_i].height;
+            special.position[0] += 0.15 * cell[0][select_i].width;
+            special.position[1] += 0.15 * cell[0][select_i].height;
+
+            shader->setUniform("bg_color", selection_color[0], selection_color[1],
+                               selection_color[2], 1.);
+            drawCell(special, NULL);
+            shader->setUniform("bg_color", bg_color[0], bg_color[1], bg_color[2], 1.);
         }
 
         if (show && input_solution != NULL) {
