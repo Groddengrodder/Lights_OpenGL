@@ -148,7 +148,10 @@ void solve_sequence() {
     if (input_solution == NULL) {
         solution = calculate_solution();
     } else {
-        solution = input_solution;
+        solution = (bool *)malloc(cell_count * sizeof(bool));
+        for (uint i = 0; i < cell_count; i++) {
+            solution[i] = input_solution[i];
+        }
     }
 
     if (solution == NULL) {
