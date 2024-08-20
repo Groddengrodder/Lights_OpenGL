@@ -32,10 +32,13 @@ box **cell = NULL;
 GLfloat color_on[3] = {1., 1., 0.};
 GLfloat color_off[3] = {1., 1., 1.};
 
-GLfloat selection_color[3] = {1., 0., 1.};
+GLfloat selection_color[3];
+GLfloat selection_color_1[3] = {1., 0., 1.};
+GLfloat selection_color_2[3] = {0., 1., 0.};
 uint select_i = -1;
 
 bool show = false;
+bool click = true;
 
 bool *input_solution = NULL;
 
@@ -137,6 +140,11 @@ bool *calculate_solution() {
 
 void solve_sequence() {
     show = false;
+    click = true;
+
+    for (uint i = 0; i < 3; i++) {
+        selection_color[i] = selection_color_1[i];
+    }
 
     const uint inverse_framerate = 10000000 / (puzzle_width * puzzle_height) > 50000
                                        ? 10000000 / (puzzle_width * puzzle_height)
@@ -204,7 +212,11 @@ void mouse_button_callback(GLFWwindow *window, int button, int action, int mods)
     uint j = select_i % puzzle_width;
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-        click_cell(j, i);
+        if (click) {
+            click_cell(j, i);
+        } else {
+            cell_statechange(j, i);
+        }
 
         if (show) {
             if (input_solution == NULL) {
@@ -281,6 +293,20 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
     if ((key == GLFW_KEY_ESCAPE || key == GLFW_KEY_Q) && action == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
     }
+
+    if (key == GLFW_KEY_I && action == GLFW_PRESS && input_enabled) {
+        if (click) {
+            click = false;
+            for (uint i = 0; i < 3; i++) {
+                selection_color[i] = selection_color_2[i];
+            }
+        } else {
+            click = true;
+            for (uint i = 0; i < 3; i++) {
+                selection_color[i] = selection_color_1[i];
+            }
+        }
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -296,6 +322,11 @@ int main(int argc, char *argv[]) {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetKeyCallback(window, key_callback);
+
+    click = true;
+    for (uint i = 0; i < 3; i++) {
+        selection_color[i] = selection_color_1[i];
+    }
 
     VertexArray GlobalVertexArray;
     GlobalVertexArray.bind();
