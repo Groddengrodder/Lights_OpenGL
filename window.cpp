@@ -17,7 +17,7 @@ typedef struct {
 GLFWwindow *window;
 const GLuint window_width = 640;  // 640
 const GLuint window_height = 640; // 480
-const GLchar *window_name = "A new Window";
+const GLchar *window_name = "Lights Out Game";
 bool input_enabled = true;
 
 const char VertexSource[] = "shader/vertex_shader.glsl";
@@ -134,8 +134,6 @@ bool *calculate_solution() {
 
     return solution;
 }
-
-void drawSelection();
 
 void solve_sequence() {
     show = false;
