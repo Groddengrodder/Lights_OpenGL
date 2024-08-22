@@ -307,6 +307,18 @@ void key_callback(GLFWwindow *window, int key, int scancode, int action, int mod
             }
         }
     }
+
+    if (key == GLFW_KEY_C && action == GLFW_PRESS && input_enabled) {
+        for (uint i = 0; i < cell_count; i++) {
+            cell[0][i].filled = false;
+        }
+
+        if (input_solution != NULL) {
+            bool *temp = input_solution;
+            input_solution = NULL;
+            free(temp);
+        }
+    }
 }
 
 int main(int argc, char *argv[]) {
@@ -335,8 +347,10 @@ int main(int argc, char *argv[]) {
 
     IndexBuffer ib_first_object(6, bg_index, GL_STATIC_DRAW);
 
-    const float cell_width = 1. / puzzle_width;
-    const float cell_height = 1. / puzzle_height;
+    float cell_width = 1. / puzzle_width;
+    float cell_height = 1. / puzzle_height;
+    cell_height = cell_width < cell_height ? cell_width : cell_height;
+    cell_width = cell_height;
     cell = init_cells(cell_width, cell_height);
 
     Shader newShader(VertexSource, FragmentSource);
