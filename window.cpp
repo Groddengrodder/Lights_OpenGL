@@ -343,10 +343,6 @@ int main(int argc, char *argv[]) {
     VertexArray GlobalVertexArray;
     GlobalVertexArray.bind();
 
-    GLuint bg_index[6] = {0, 1, 2, 0, 2, 3};
-
-    IndexBuffer ib_first_object(6, bg_index, GL_STATIC_DRAW);
-
     float cell_width = 1. / puzzle_width;
     float cell_height = 1. / puzzle_height;
     cell_height = cell_width < cell_height ? cell_width : cell_height;
@@ -370,7 +366,6 @@ int main(int argc, char *argv[]) {
     }
 
     shader->bind();
-    ib_first_object.bind();
 
     char bg_color_uni[] = "bg_color";
     char rect_info[] = "rect_info";
